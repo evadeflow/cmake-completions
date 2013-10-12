@@ -33,13 +33,20 @@ _cmake()
 
                 # CUSTOM:
                 # ===VALUES===
-                # Any variables whose *values* you want to complete when there
-                # is no CMakeCache.txt file present should go here.  Note that
-                # you only need to handle STRING and INTERNAL variables here
-                # (rather than ALL variables from the '===VARIABLES==='
-                # section below), since the values for the other types are
-                # known/fixed.
+                # Any variables whose *values* you want to complete when no
+                # CMakeCache.txt file is present should go here. (See the
+                # '===VARIABLES===' section for the code that completes the
+                # variable *names*.)
                 case "$var" in
+                    BUILD_TESTS* | \
+                    ENABLE_AUDIT* | \
+                    ENABLE_ENGINEERING_BUILD* | \
+                    INCLUDE_TESTS_IN_ALL*)
+                        COMPREPLY=( $( compgen -W 'ON OFF' -- \
+                            "$value" ) )
+                        return
+                        ;;
+
                     CMAKE_BUILD_TYPE*)
                         COMPREPLY=( $(compgen -W 'Debug Release RelWithDebInfo
                             MinSizeRel' -- "$value") )
@@ -109,20 +116,17 @@ _cmake()
                 # CUSTOM:
                 # ===VARIABLES===
                 # Any '-D' variables whose *names* you want to complete when
-                # there is no CMakeCache.txt file present should go here. Note
-                # that ':type' is appended in order for the value-completion
-                # code above to work correctly without a CMakeCache.txt file
-                # present.
+                # there is no CMakeCache.txt file present should go here.
                 CUSTOM_VARS=( \
-                    "BUILD_TESTS:BOOL" \
-                    "CMAKE_BUILD_TYPE:STRING" \
-                    "ENABLE_AUDIT:BOOL" \
-                    "ENABLE_ENGINEERING_BUILD:BOOL" \
-                    "GUI_OPTION:STRING" \
-                    "INCLUDE_TESTS_IN_ALL:BOOL" \
-                    "SOUND_DRIVER:STRING" \
-                    "TEST_RUNNER:STRING" \
-                    "WARNING_HUNTING:STRING" \
+                    "BUILD_TESTS" \
+                    "CMAKE_BUILD_TYPE" \
+                    "ENABLE_AUDIT" \
+                    "ENABLE_ENGINEERING_BUILD" \
+                    "GUI_OPTION" \
+                    "INCLUDE_TESTS_IN_ALL" \
+                    "SOUND_DRIVER" \
+                    "TEST_RUNNER" \
+                    "WARNING_HUNTING" \
                 )
                 ALL_VARS=("${CUSTOM_VARS[@]}" "${CACHE_VARS[@]}")
                 COMPREPLY=( $(compgen -W '${ALL_VARS[@]}' -P "$prefix" -- "$cur") )

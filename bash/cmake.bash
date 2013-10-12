@@ -42,7 +42,7 @@ _cmake()
                     ENABLE_AUDIT* | \
                     ENABLE_ENGINEERING_BUILD* | \
                     INCLUDE_TESTS_IN_ALL*)
-                        COMPREPLY=( $( compgen -W 'ON OFF' -- \
+                        COMPREPLY=( $( compgen -W 'TRUE FALSE' -- \
                             "$value" ) )
                         return
                         ;;

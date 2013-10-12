@@ -1,4 +1,10 @@
-# bash completion for cmake(1)                             -*- shell-script -*-
+# bash completion for cmake(1)
+#
+# To use this file, source it directly from a terminal, or add:
+#
+#   source cmake.bash
+#
+# to your .bashrc...
 
 _cmake()
 {
@@ -25,11 +31,40 @@ _cmake()
                 var="${cur%%[:=]*}"
                 value="${cur#*=}"
 
-                if [[ $cur == CMAKE_BUILD_TYPE* ]]; then # most widely used case
-                    COMPREPLY=( $( compgen -W 'Debug Release RelWithDebInfo
-                        MinSizeRel' -- "$value" ) )
-                    return
-                fi
+                # CUSTOM:
+                # ===VALUES===
+                # Any variables whose *values* you want to complete when there
+                # is no CMakeCache.txt file present should go here.  Note that
+                # you only need to handle STRING and INTERNAL variables here
+                # (rather than ALL variables from the '===VARIABLES==='
+                # section below), since the values for the other types are
+                # known/fixed.
+                case "$var" in
+                    CMAKE_BUILD_TYPE*)
+                        COMPREPLY=( $(compgen -W 'Debug Release RelWithDebInfo
+                            MinSizeRel' -- "$value") )
+                        return
+                        ;;
+                    
+                    GUI_OPTION*) # CUSTOM
+                        COMPREPLY=( $(compgen -W 'sqlite xfiles' -- "$value") )
+                        return
+                        ;;
+
+                    SOUND_DRIVER*) # CUSTOM
+                        COMPREPLY=( $(compgen -W 'alsa oss none' -- "$value") )
+                        return
+                        ;;
+                    TEST_RUNNER*) # CUSTOM
+                        COMPREPLY=( $(compgen -W 'ErrorPrinter
+                            XUnitPrinter' -- "$value" ) )
+                        return
+                        ;;
+                    WARNING_HUNTING*) # CUSTOM
+                        COMPREPLY=( $(compgen -W '0 1 2 3 4' -- "$value" ) )
+                        return
+                        ;;
+                esac
 
                 if [[ $cur == *:* ]]; then
                     type="${cur#*:}"
@@ -69,8 +104,28 @@ _cmake()
                 compopt -o nospace
             else
             # complete variable names
-                COMPREPLY=( $( compgen -W '$( cmake -LA -N | tail -n +2 |
-                    cut -f1 -d: )' -P "$prefix" -- "$cur" ) )
+                CACHE_VARS=( $(cmake -LA -N | tail -n +2 | cut -f1 -d:) )
+
+                # CUSTOM:
+                # ===VARIABLES===
+                # Any '-D' variables whose *names* you want to complete when
+                # there is no CMakeCache.txt file present should go here. Note
+                # that ':type' is appended in order for the value-completion
+                # code above to work correctly without a CMakeCache.txt file
+                # present.
+                CUSTOM_VARS=( \
+                    "BUILD_TESTS:BOOL" \
+                    "CMAKE_BUILD_TYPE:STRING" \
+                    "ENABLE_AUDIT:BOOL" \
+                    "ENABLE_ENGINEERING_BUILD:BOOL" \
+                    "GUI_OPTION:STRING" \
+                    "INCLUDE_TESTS_IN_ALL:BOOL" \
+                    "SOUND_DRIVER:STRING" \
+                    "TEST_RUNNER:STRING" \
+                    "WARNING_HUNTING:STRING" \
+                )
+                ALL_VARS=("${CUSTOM_VARS[@]}" "${CACHE_VARS[@]}")
+                COMPREPLY=( $(compgen -W '${ALL_VARS[@]}' -P "$prefix" -- "$cur") )
                 compopt -o nospace
             fi
             return
@@ -147,5 +202,3 @@ _cmake()
     _filedir
 } &&
 complete -F _cmake cmake
-
-# ex: ts=4 sw=4 et filetype=sh

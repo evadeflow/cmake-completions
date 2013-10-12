@@ -23,3 +23,9 @@ TODO
 * Add Zsh support
 * Generalize the customization mechanism (maybe read customizations from a
   file, or autogenerate the completion script?)
+* Fix duplicate entries when a CMakeCache.txt file *is* present. For example,
+  if you type `-DGUI_<TAB>`, you'll see: `-DGUI_OPTION -DGUI_OPTION:STRING`.
+  This is a little confusing.
+* Related to the duplicates: consider ways of stripping the ':type' suffix
+  from custom completions.  (Maybe bite the bullet and handle *all* values
+  instead of just STRING/INTERNAL?)

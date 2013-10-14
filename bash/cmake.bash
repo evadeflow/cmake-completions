@@ -53,6 +53,12 @@ _cmake()
                         return
                         ;;
                     
+                    CMAKE_TOOLCHAIN_FILE*)
+                        TCFILES=$(ls ../cmake/*toolchain*.cmake 2>/dev/null)
+                        COMPREPLY=( $(compgen -W '${TCFILES}' -- "$value") )
+                        return
+                        ;;
+
                     GUI_OPTION*) # CUSTOM
                         COMPREPLY=( $(compgen -W 'sqlite xfiles' -- "$value") )
                         return
@@ -119,6 +125,7 @@ _cmake()
                 CUSTOM_VARS=( \
                     "BUILD_TESTS" \
                     "CMAKE_BUILD_TYPE" \
+                    "CMAKE_TOOLCHAIN_FILE" \
                     "ENABLE_AUDIT" \
                     "ENABLE_ENGINEERING_BUILD" \
                     "GUI_OPTION" \

@@ -20,7 +20,6 @@ running cmake for the first time.
 
 TODO
 ----
-* Add support for custom -DCMAKE_TOOLCHAIN_FILE handling
 * Add Zsh support
 * Generalize the customization mechanism (maybe read customizations from a
   file, or autogenerate the completion script?)

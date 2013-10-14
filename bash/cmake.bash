@@ -42,8 +42,8 @@ _cmake()
                     ENABLE_AUDIT* | \
                     ENABLE_ENGINEERING_BUILD* | \
                     INCLUDE_TESTS_IN_ALL*)
-                        COMPREPLY=( $( compgen -W 'TRUE FALSE' -- \
-                            "$value" ) )
+                        COMPREPLY=( $(compgen -W 'TRUE FALSE' -- \
+                            "$value") )
                         return
                         ;;
 
@@ -64,11 +64,11 @@ _cmake()
                         ;;
                     TEST_RUNNER*) # CUSTOM
                         COMPREPLY=( $(compgen -W 'ErrorPrinter
-                            XUnitPrinter' -- "$value" ) )
+                            XUnitPrinter' -- "$value") )
                         return
                         ;;
                     WARNING_HUNTING*) # CUSTOM
-                        COMPREPLY=( $(compgen -W '0 1 2 3 4' -- "$value" ) )
+                        COMPREPLY=( $(compgen -W '0 1 2 3 4' -- "$value") )
                         return
                         ;;
                 esac
@@ -77,8 +77,7 @@ _cmake()
                     type="${cur#*:}"
                     type="${type%%=*}"
                 else # get type from cache if it's not set explicitly
-                    type=$( cmake -LA -N 2>/dev/null | grep "$var:" \
-                        2>/dev/null )
+                    type=$(cmake -LA -N 2>/dev/null | grep "$var:" 2>/dev/null)
                     type="${type#*:}"
                     type="${type%%=*}"
                 fi
@@ -94,8 +93,8 @@ _cmake()
                         return
                         ;;
                     BOOL)
-                        COMPREPLY=( $( compgen -W 'ON OFF TRUE FALSE' -- \
-                            "$value" ) )
+                        COMPREPLY=( $(compgen -W 'ON OFF TRUE FALSE' -- \
+                            "$value") )
                         return
                         ;;
                     STRING|INTERNAL)
@@ -106,8 +105,8 @@ _cmake()
             elif [[ $cur == *:* ]]; then
             # complete types
                 local type="${cur#*:}"
-                COMPREPLY=( $( compgen -W 'FILEPATH PATH STRING BOOL INTERNAL'\
-                    -S = -- "$type" ) )
+                COMPREPLY=( $(compgen -W 'FILEPATH PATH STRING BOOL INTERNAL'\
+                    -S = -- "$type") )
                 compopt -o nospace
             else
             # complete variable names
@@ -135,8 +134,8 @@ _cmake()
             return
             ;;
         -U)
-            COMPREPLY=( $( compgen -W '$( cmake -LA -N | tail -n +2 |
-                cut -f1 -d: )' -P "$prefix" -- "$cur" ) )
+            COMPREPLY=( $(compgen -W '$(cmake -LA -N | tail -n +2 |
+                cut -f1 -d:)' -P "$prefix" -- "$cur") )
             return
             ;;
     esac
@@ -153,44 +152,44 @@ _cmake()
             return
             ;;
         -E)
-            COMPREPLY=( $( compgen -W "$( cmake -E help |& sed -n \
-                '/^  /{s|^  \([^ ]\{1,\}\) .*$|\1|;p}' 2>/dev/null )" \
-                -- "$cur" ) )
+            COMPREPLY=( $(compgen -W "$(cmake -E help |& sed -n \
+                '/^  /{s|^  \([^ ]\{1,\}\) .*$|\1|;p}' 2>/dev/null)" \
+                -- "$cur") )
             return
             ;;
         -G)
             local IFS=$'\n'
             local quoted
             printf -v quoted %q "$cur"
-            COMPREPLY=( $( compgen -W '$( cmake --help 2>/dev/null | sed -n \
+            COMPREPLY=( $(compgen -W '$(cmake --help 2>/dev/null | sed -n \
                 -e "1,/^Generators/d" \
                 -e "/^  *[^ =]/{s|^ *\([^=]*[^ =]\).*$|\1|;s| |\\\\ |g;p}" \
-                2>/dev/null )' -- "$quoted" ) )
+                2>/dev/null)' -- "$quoted") )
             return
             ;;
         --help-command)
-            COMPREPLY=( $( compgen -W '$( cmake --help-command-list 2>/dev/null|
-                grep -v "^cmake version " )' -- "$cur" ) )
+            COMPREPLY=( $(compgen -W '$(cmake --help-command-list 2>/dev/null|
+                grep -v "^cmake version ")' -- "$cur") )
             return
             ;;
         --help-module)
-            COMPREPLY=( $( compgen -W '$( cmake --help-module-list 2>/dev/null|
-                grep -v "^cmake version " )' -- "$cur" ) )
+            COMPREPLY=( $(compgen -W '$(cmake --help-module-list 2>/dev/null|
+                grep -v "^cmake version ")' -- "$cur") )
             return
             ;;
          --help-policy)
-            COMPREPLY=( $( compgen -W '$( cmake --help-policies 2>/dev/null |
-                grep "^  CMP" 2>/dev/null )' -- "$cur" ) )
+            COMPREPLY=( $(compgen -W '$(cmake --help-policies 2>/dev/null |
+                grep "^  CMP" 2>/dev/null)' -- "$cur") )
             return
             ;;
          --help-property)
-            COMPREPLY=( $( compgen -W '$( cmake --help-property-list \
-                2>/dev/null | grep -v "^cmake version " )' -- "$cur" ) )
+            COMPREPLY=( $(compgen -W '$(cmake --help-property-list \
+                2>/dev/null | grep -v "^cmake version ")' -- "$cur") )
             return
             ;;
          --help-variable)
-            COMPREPLY=( $( compgen -W '$( cmake --help-variable-list \
-                2>/dev/null | grep -v "^cmake version " )' -- "$cur" ) )
+            COMPREPLY=( $(compgen -W '$(cmake --help-variable-list \
+                2>/dev/null | grep -v "^cmake version ")' -- "$cur") )
             return
             ;;
     esac
@@ -198,7 +197,7 @@ _cmake()
     $split && return
 
     if [[ "$cur" == -* ]]; then
-        COMPREPLY=( $(compgen -W '$( _parse_help "$1" --help )' -- ${cur}) )
+        COMPREPLY=( $(compgen -W '$(_parse_help "$1" --help)' -- ${cur}) )
         [[ $COMPREPLY == *= ]] && compopt -o nospace
         [[ $COMPREPLY ]] && return
     fi

@@ -5,11 +5,18 @@
 #
 #  Completion script for CMake (http://www.cmake.org).
 #
+#  To use this file, copy it to a convenient location, e.g., $HOME/.zsh/func,
+#  and add these lines to the beginning of your .zshrc:
+#
+#    fpath=($HOME/.zsh/func $fpath)
+#    typeset -U fpath
+#
 # -------------------------------------------------------------------------
 # Authors
 # -------
 #
 #  * Scott M. Kroll <skroll@gmail.com>
+#  * Evade Flow <evadeflow@gmail.com>
 #
 # -------------------------------------------------------------------------
 # Notes
@@ -139,7 +146,7 @@ _cmake_define_property() {
 (( $+functions[_cmake_define_property_names] )) ||
 _cmake_define_property_names() {
   local alternatives; alternatives=(
-    'common-property-names:common property name:_cmake_define_common_property_names -qS='
+    'common-property-names:common properties:_cmake_define_common_property_names -qS='
   )
   local -A cmake_langs
   zstyle -a ":completion:${curcontext}:" languages cmake_langs
@@ -147,7 +154,7 @@ _cmake_define_property_names() {
 
   for cmake_lang in ${(k)cmake_langs}; do
     cmake_lang_desc="${cmake_langs[$cmake_lang]}"
-    alternatives+=("${cmake_lang//:/-}-property-names:${cmake_lang_desc} language property name:_cmake_define_lang_property_names -qS= ${cmake_lang} ${cmake_lang_desc}")
+    alternatives+=("${cmake_lang//:/-}-property-names:${cmake_lang_desc} language properties:_cmake_define_lang_property_names -qS= ${cmake_lang} ${cmake_lang_desc}")
   done
 
   _alternative "${alternatives[@]}"
@@ -177,10 +184,18 @@ _cmake_define_lang_property_names() {
 (( $+functions[_cmake_define_common_property_names] )) ||
 _cmake_define_common_property_names() {
   local properties; properties=(
+    'BUILD_TESTS:Flag specifying whether or not to build the unit tests'
     'CMAKE_BUILD_TYPE:Specifies the build type for make based generators'
     'CMAKE_TOOLCHAIN_FILE:Absolute or relative path to a cmake script which sets up toolchain related variables'
     'CMAKE_COLOR_MAKEFILE:Enables/disables color output when using the Makefile generator'
     'CMAKE_INSTALL_PREFIX:Install directory used by install'
+    'DATA_PROVIDER:Data backend to use (xfiles[default] or sqlite)'
+    'ENABLE_AUDIT:If enabled, dump some build information to cmake_audit.txt'
+    'ENABLE_ENGINEERING_BUILD:Enable or disable engineering builds'
+    'INCLUDE_TESTS_IN_ALL:Include unit tests in ALL target (Linux only)'
+    'SOUND_DRIVER:Sound driver to use (alsa[default]|oss|none)'
+    'TEST_RUNNER:Test runner to use for unit tests (ErrorPrinter[default]|XUnitPrinter)'
+    'WARNING_HUNTING:Severity level for warnings (0[default] through 4)'
   )
 
   _describe -t 'common-property-names' 'common property name' properties $@
@@ -194,12 +209,21 @@ _cmake_define_property_values() {
   local ret=1
   setopt localoptions extendedglob
   case $@[-1] in
+    # CUSTOM
+    (BUILD_TESTS) _wanted booleans expl 'boolean' _cmake_booleans && ret=0;;
     (CMAKE_BUILD_TYPE)     _wanted build-types expl 'build type' _cmake_build_types && ret=0;;
     (CMAKE_TOOLCHAIN_FILE) _wanted toolchain-files expl 'file' _cmake_toolchain_files && ret=0;;
     (CMAKE_COLOR_MAKEFILE) _wanted booleans expl 'boolean' _cmake_booleans && ret=0;;
     (CMAKE_INSTALL_PREFIX) _files -/ && ret=0;;
     (CMAKE_*_COMPILER)     _wanted compilers expl 'compiler' _cmake_compilers && ret=0;;
     (CMAKE_*_FLAGS(|_?*))  _message -e compiler-flags 'compiler flags' && ret=0;;
+    (DATA_PROVIDER) _wanted data-providers expl 'data backend to use' _custom_data_providers && ret=0;;
+    (ENABLE_AUDIT) _wanted booleans expl 'boolean' _cmake_booleans && ret=0;;
+    (ENABLE_ENGINEERING_BUILD) _wanted booleans expl 'boolean' _cmake_booleans && ret=0;;
+    (INCLUDE_TESTS_IN_ALL) _wanted booleans expl 'boolean' _cmake_booleans && ret=0;;
+    (SOUND_DRIVER) _wanted sound-drivers expl 'sound driver to use' _custom_sound_drivers && ret=0;;
+    (TEST_RUNNER) _wanted test-runners expl 'test runner to use' _custom_test_runners && ret=0;;
+    (WARNING_HUNTING) _wanted warning-levels expl 'warning level' _custom_warning_levels && ret=0;;
     (*)                    _files && ret=0;;
   esac
 
@@ -214,8 +238,8 @@ _cmake_build_types() {
   local build_types; build_types=(
     'Debug'
     'Release'
-    'RelWithDebInfo'
-    'MinSizeRel'
+    #'RelWithDebInfo'
+    #'MinSizeRel'
   )
   _values 'build type' ${build_types[@]}
 }
@@ -241,12 +265,21 @@ _cmake_generators() {
   _describe -t generators 'generator' generators
 }
 
+# CUSTOM
+# FIXME: This doesn't work well if you try to path-complete to a file in a
+# different location. Need to figure out how to 'strongly suggest' a few
+# common used files, but fall through to normal file path completion if the
+# user really wants to point at something else...
+#
 # ----------------------
 # _cmake_toolchain_files
 # ----------------------
 (( $+functions[_cmake_toolchain_files] )) ||
 _cmake_toolchain_files() {
-  _files -g '*\.cmake*'
+  local custom_toolchain_files; custom_toolchain_files=(
+    $(ls ../cmake/*toolchain*.cmake 2>/dev/null)
+  )
+  _values 'toolchain for cross-compilation?' ${custom_toolchain_files[@]}
 }
 
 # ---------------
@@ -269,6 +302,47 @@ _cmake_compilers() {
   _command_names -e
 }
 
+#
+# CUSTOM
+#
+(( $+functions[_custom_data_providers] )) ||
+_custom_data_providers() {
+  local data_providers; data_providers=(
+    'xfiles'
+    'sqlite'
+  )
+  _values 'data backend to use? [default=xfiles]' ${data_providers[@]}
+}
+
+(( $+functions[_custom_sound_drivers] )) ||
+_custom_sound_drivers() {
+  local custom_sound_drivers; custom_sound_drivers=(
+    'alsa'
+    'none'
+    'oss'
+  )
+  _values 'sound driver to use? [default=alsa]' ${custom_sound_drivers[@]}
+}
+
+(( $+functions[_custom_test_runners] )) ||
+_custom_test_runners() {
+  local custom_test_runners; custom_test_runners=(
+    'ErrorPrinter'
+    'XUnitPrinter'
+  )
+  _values 'test runner to use? [default=ErrorPrinter]' ${custom_test_runners[@]}
+}
+
+(( $+functions[_custom_warning_levels] )) ||
+_custom_warning_levels() {
+  local custom_warning_levels; custom_warning_levels=(
+    '0'
+    '1'
+    '2'
+    '3'
+    '4'
+  )
+  _values 'warning level? [default=0]' ${custom_warning_levels[@]}
+}
 
 _cmake "$@"
-

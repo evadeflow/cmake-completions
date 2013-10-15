@@ -18,7 +18,7 @@ cache present, and the fact that options dependent on other options being set
 original bash completion script to provide a little help even if you are
 running cmake for the first time.
 
-For Zsh, I started with [this script](https://github.com/skroll/zsh-cmake-completion/blob/master/_cmake) and hacked it to support some (hard-coded) custom options for projects I'm working on.
+For Zsh, I started with [this script](https://github.com/skroll/zsh-cmake-completion/blob/master/_cmake) and hacked it to support some (hard-coded) custom options for projects I'm working on.  This script does _not_ read from a CMakeCache.txt, but maybe I'll add that ability someday...
 
 TODO
 ----
